@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+configs/arms.env
+*.mp4
+*.avi
+outputs/
+recordings/
+.cache/

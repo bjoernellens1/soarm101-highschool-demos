@@ -1,0 +1,29 @@
+[project]
+name = "soarm101-highschool-demos"
+version = "0.2.0"
+description = "Self-contained 3-hour high-school demo repo for SO-ARM101 / SO-101 with LeRobot"
+requires-python = ">=3.12"
+dependencies = [
+  "flask>=3.0",
+  "opencv-python>=4.8",
+  "numpy>=1.24",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+robot = ["lerobot[feetech]"]
+foxglove = ["foxglove-sdk"]
+dev = ["ruff", "pytest"]
+
+[project.scripts]
+soarm-workshop = "soarm101_workshop.cli:main"
+soarm-web = "soarm101_workshop.web_app:main"
+
+[tool.setuptools.package-data]
+soarm101_workshop = ["web/templates/*.html", "web/static/*.css"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.setuptools.packages.find]
+where = ["src"]

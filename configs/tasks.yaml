@@ -1,0 +1,30 @@
+workshop_tasks:
+  - name: cube_sort_red_blue
+    student_story: "The robot works in a tiny recycling station. Red blocks go left, blue blocks go right."
+    objects:
+      - red foam cube
+      - blue foam cube
+    zones:
+      - HOME
+      - PICK_AREA
+      - RED_BIN
+      - BLUE_BIN
+    success_metric:
+      correct_pick: 1
+      correct_bin: 1
+      no_collision: 1
+      clean_reset: 1
+  - name: rescue_delivery
+    student_story: "The robot moves medicine blocks into the hospital zone."
+    objects:
+      - white foam cube
+      - green foam cube
+    zones:
+      - HOME
+      - SUPPLY_AREA
+      - HOSPITAL_ZONE
+    success_metric:
+      correct_pick: 1
+      delivered: 1
+      no_collision: 1
+      team_explanation: 1
