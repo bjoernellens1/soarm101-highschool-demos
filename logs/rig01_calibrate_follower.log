@@ -1,0 +1,68 @@
+
+
+=== 2026-06-18 10:54:20 ===
++ lerobot-calibrate --robot.type=so101_follower --robot.port=/dev/so101/rig01_follower --robot.id=hs_rig01_follower
+INFO 2026-06-18 10:54:28 calibrate.py:82 {'robot': {'calibration_dir': None,
+           'cameras': {},
+           'disable_torque_on_disconnect': True,
+           'id': 'hs_rig01_follower',
+           'max_relative_target': None,
+           'port': '/dev/so101/rig01_follower',
+           'use_degrees': True},
+ 'teleop': None}
+Traceback (most recent call last):
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/serial/serialposix.py", line 322, in open
+    self.fd = os.open(self.portstr, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/dev/so101/rig01_follower'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/motors/motors_bus.py", line 519, in _connect
+    if not self.port_handler.openPort():
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/scservo_sdk/port_handler.py", line 25, in openPort
+    return self.setBaudRate(self.baudrate)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/scservo_sdk/port_handler.py", line 49, in setBaudRate
+    return self.setupPort(baud)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/scservo_sdk/port_handler.py", line 95, in setupPort
+    self.ser = serial.Serial(
+               ^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/serial/serialutil.py", line 244, in __init__
+    self.open()
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/serial/serialposix.py", line 325, in open
+    raise SerialException(msg.errno, "could not open port {}: {}".format(self._port, msg))
+serial.serialutil.SerialException: [Errno 2] could not open port /dev/so101/rig01_follower: [Errno 2] No such file or directory: '/dev/so101/rig01_follower'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/bin/lerobot-calibrate", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/scripts/lerobot_calibrate.py", line 99, in main
+    calibrate()
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/draccus/argparsing.py", line 225, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/scripts/lerobot_calibrate.py", line 89, in calibrate
+    device.connect(calibrate=False)
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/utils/decorators.py", line 39, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/robots/so_follower/so_follower.py", line 95, in connect
+    self.bus.connect()
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/utils/decorators.py", line 39, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/motors/motors_bus.py", line 513, in connect
+    self._connect(handshake)
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/motors/motors_bus.py", line 524, in _connect
+    raise ConnectionError(
+ConnectionError: 
+Could not connect on port '/dev/so101/rig01_follower'. Make sure you are using the correct port.
+Try running `lerobot-find-port`
+

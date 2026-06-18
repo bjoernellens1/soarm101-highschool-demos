@@ -12,99 +12,128 @@
     <p>Local-only launcher for calibration, teleop, recording, replay, and multi-rig control.</p>
   </header>
 
-  <main>
-    <section class="card danger">
-      <h2>Safety first</h2>
-      <p>Use light foam objects, slow speeds, taped zones, and one adult near power. Stop all motion before students enter the robot workspace.</p>
-      <form action="/stop_all" method="post"><button class="stop" type="submit">STOP ALL RUNNING COMMANDS</button></form>
-    </section>
+  <main class="dashboard-layout">
+    <aside class="sidebar">
+      <section class="card">
+        <h2>Select station</h2>
+        <form method="get" action="/">
+          <select name="rig" onchange="this.form.submit()">
+            {% for r in rigs %}
+              <option value="{{ r.name }}" {% if r.name == selected %}selected{% endif %}>{{ r.name }} — {{ r.label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+        <dl>
+          <dt>Follower</dt><dd>{{ rig.follower.id }} @ <code>{{ rig.follower.port }}</code></dd>
+          <dt>Leader</dt><dd>{{ rig.leader.id }} @ <code>{{ rig.leader.port }}</code></dd>
+          <dt>Task</dt><dd>{{ rig.task_text }}</dd>
+        </dl>
+      </section>
 
-    <section class="card">
-      <h2>Select station</h2>
-      <form method="get" action="/">
-        <select name="rig" onchange="this.form.submit()">
-          {% for r in rigs %}
-            <option value="{{ r.name }}" {% if r.name == selected %}selected{% endif %}>{{ r.name }} — {{ r.label }}</option>
-          {% endfor %}
-        </select>
-      </form>
-      <dl>
-        <dt>Follower</dt><dd>{{ rig.follower.id }} @ <code>{{ rig.follower.port }}</code></dd>
-        <dt>Leader</dt><dd>{{ rig.leader.id }} @ <code>{{ rig.leader.port }}</code></dd>
-        <dt>Task</dt><dd>{{ rig.task_text }}</dd>
-      </dl>
-    </section>
-
-    <section class="grid">
       <form class="card" action="/start/calibrate_follower" method="post">
         <h2>1. Calibrate follower</h2>
         <input type="hidden" name="rig" value="{{ rig.name }}">
-        <p>Use once per hardware setup, or after rebuild/servo change.</p>
-        <button type="submit">Start follower calibration</button>
+        <p style="color:#94a3b8; font-size: 0.9rem; margin-top:0;">Use once per hardware setup, or after rebuild.</p>
+        <button type="submit" style="width:100%;">Start calibration</button>
       </form>
 
       <form class="card" action="/start/calibrate_leader" method="post">
         <h2>2. Calibrate leader</h2>
         <input type="hidden" name="rig" value="{{ rig.name }}">
-        <p>Use the exact same leader ID later for teleop and recording.</p>
-        <button type="submit">Start leader calibration</button>
+        <p style="color:#94a3b8; font-size: 0.9rem; margin-top:0;">Use the exact same leader ID later.</p>
+        <button type="submit" style="width:100%;">Start calibration</button>
       </form>
 
       <form class="card" action="/start/teleop" method="post">
         <h2>3. Wow teleop</h2>
         <input type="hidden" name="rig" value="{{ rig.name }}">
-        <p>Leader controls follower; LeRobot display is enabled.</p>
-        <button type="submit">Start teleop</button>
+        <p style="color:#94a3b8; font-size: 0.9rem; margin-top:0;">Leader controls follower directly.</p>
+        <button type="submit" style="width:100%;">Start teleop</button>
       </form>
 
       <form class="card" action="/start/record" method="post">
         <h2>4. Record mini dataset</h2>
         <input type="hidden" name="rig" value="{{ rig.name }}">
-        <label>HF user / namespace <input name="hf_user" value="{{ hf_user }}"></label>
+        <label>HF namespace <input name="hf_user" value="{{ hf_user }}"></label>
         <label>Dataset name <input name="dataset_name" value="{{ dataset_name }}"></label>
-        <label>Episodes <input name="episodes" type="number" min="1" max="20" value="5"></label>
-        <label>Episode seconds <input name="episode_time_s" type="number" min="5" max="120" value="20"></label>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <label>Episodes <input name="episodes" type="number" min="1" max="20" value="5"></label>
+          <label>Ep. seconds <input name="episode_time_s" type="number" min="5" max="120" value="20"></label>
+        </div>
+        
         <label>Reset seconds <input name="reset_time_s" type="number" min="3" max="60" value="10"></label>
-        <label class="inline"><input name="push_to_hub" type="checkbox"> push to Hugging Face Hub</label>
-        <button type="submit">Start recording</button>
+        <label class="inline"><input name="push_to_hub" type="checkbox"> Push to HF Hub</label>
+        <label class="inline"><input type="checkbox" name="resume"> Resume existing dataset</label>
+        <button type="submit" style="width:100%; margin-top: 1rem;">Start recording</button>
       </form>
-    </section>
 
-    <section class="card">
-      <h2>Replay episode</h2>
-      <form action="/start/replay" method="post">
-        <input type="hidden" name="rig" value="{{ rig.name }}">
-        <label>Dataset repo_id <input name="repo_id" placeholder="local/hs-so101-rig01-cube-sort"></label>
-        <label>Episode <input name="episode" type="number" min="0" value="0"></label>
-        <button type="submit">Replay</button>
-      </form>
-    </section>
+      <section class="card">
+        <h2>Replay episode</h2>
+        <form action="/start/replay" method="post">
+          <input type="hidden" name="rig" value="{{ rig.name }}">
+          <label>Dataset repo_id <input name="repo_id" placeholder="local/hs-so101-rig01-cube-sort"></label>
+          <label>Episode <input name="episode" type="number" min="0" value="0"></label>
+          <button type="submit" style="width:100%;">Replay</button>
+        </form>
+      </section>
+    </aside>
 
-    <section class="card">
-      <h2>Running commands</h2>
-      {% if status %}
-        {% for key, item in status.items() %}
-          <div class="running">
-            <strong>{{ key }}</strong>
-            <code>{{ item.cmd }}</code>
-            <form action="/stop" method="post">
-              <input type="hidden" name="key" value="{{ key }}">
-              <button class="stop" type="submit">Stop</button>
-            </form>
-          </div>
+    <div class="main-content">
+      <section class="card danger">
+        <h2>Safety first</h2>
+        <p style="color:#cbd5e1;">Use light foam objects, slow speeds, taped zones, and one adult near power. Stop all motion before students enter the robot workspace.</p>
+        <form action="/stop_all" method="post"><button class="stop" type="submit">EMERGENCY STOP ALL</button></form>
+      </section>
+
+      <section class="card">
+        <div class="card-header-image" style="background-image: url('{{ url_for('static', filename='commands_thumbnail_v2.jpg') }}');"></div>
+        <h2>Running commands</h2>
+        {% if status %}
+          {% for key, item in status.items() %}
+            <div class="running {% if not item.alive %}stopped{% endif %}" style="margin-bottom: 1em; padding: 1em; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--card-border);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <strong style="font-size: 1.1rem; color: #60a5fa;">{{ key }}</strong>
+                {% if not item.alive %}<span style="color: #ef4444; font-weight: bold;">(Exited: {{ item.returncode }})</span>{% endif %}
+              </div>
+              <code style="display: block; padding: 0.5rem; background: rgba(0,0,0,0.4); border-radius: 8px;">{{ item.cmd }}</code>
+              
+              {% if item.log %}
+              <div style="margin-top: 1em;">
+                <strong style="color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Recent Logs:</strong>
+                <pre style="background: #0f172a; color: #34d399; padding: 1em; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">{{ item.log }}</pre>
+              </div>
+              {% endif %}
+
+              <div style="margin-top: 1em; display: flex; gap: 0.5rem;">
+                {% if item.alive %}
+                <form action="/stop" method="post">
+                  <input type="hidden" name="key" value="{{ key }}">
+                  <button class="stop" type="submit">Stop Process</button>
+                </form>
+                {% else %}
+                <form action="/clear" method="post">
+                  <input type="hidden" name="key" value="{{ key }}">
+                  <button type="submit" style="background: #475569;">Dismiss Log</button>
+                </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p style="color: #94a3b8; font-style: italic;">No command is currently running from this launcher.</p>
+        {% endif %}
+      </section>
+
+      <section class="card">
+        <div class="card-header-image" style="background-image: url('{{ url_for('static', filename='cli_thumbnail_v2.jpg') }}');"></div>
+        <h2>CLI preview for {{ rig.name }}</h2>
+        {% for name, cmd in cmds.items() %}
+          <h3 style="color: #60a5fa; margin-bottom: 0.5rem;">{{ name }}</h3>
+          <pre style="margin-top: 0; background: #0f172a;">{{ cmd }}</pre>
         {% endfor %}
-      {% else %}
-        <p>No command is currently running from this launcher.</p>
-      {% endif %}
-    </section>
-
-    <section class="card">
-      <h2>CLI preview for {{ rig.name }}</h2>
-      {% for name, cmd in cmds.items() %}
-        <h3>{{ name }}</h3>
-        <pre>{{ cmd }}</pre>
-      {% endfor %}
-    </section>
+      </section>
+    </div>
   </main>
 </body>
 </html>

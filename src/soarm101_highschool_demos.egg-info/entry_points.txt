@@ -1,0 +1,3 @@
+[console_scripts]
+soarm-web = soarm101_workshop.web_app:main
+soarm-workshop = soarm101_workshop.cli:main

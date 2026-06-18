@@ -11,6 +11,7 @@ from .commands import (
     build_record,
     build_replay,
     build_teleop,
+    clear_process,
     shell_join,
     start_process,
     status,
@@ -39,8 +40,8 @@ def create_app() -> Flask:
         cmds = {
             "calibrate follower": shell_join(build_calibrate_follower(rig)),
             "calibrate leader": shell_join(build_calibrate_leader(rig)),
-            "teleop": shell_join(build_teleop(rig)),
-            "record local": shell_join(build_record(rig, hf_user=hf_user, dataset_name=dataset_name)),
+            "teleop": shell_join(build_teleop(rig, check_cameras=False)),
+            "record local": shell_join(build_record(rig, hf_user=hf_user, dataset_name=dataset_name, check_cameras=False)),
         }
         return render_template(
             "index.html",
@@ -74,6 +75,7 @@ def create_app() -> Flask:
                 episode_time_s=int(request.form.get("episode_time_s") or 20),
                 reset_time_s=int(request.form.get("reset_time_s") or 10),
                 push_to_hub=request.form.get("push_to_hub") == "on",
+                resume=request.form.get("resume") == "on",
             )
         elif action == "replay":
             repo_id = request.form.get("repo_id") or f"local/hs-so101-{rig.name}-cube-sort"
@@ -96,6 +98,12 @@ def create_app() -> Flask:
         for key in list(status().keys()):
             stop_process(key)
         return redirect(url_for("index"))
+    @app.post("/clear")
+    def clear():
+        key = request.form.get("key", "")
+        clear_process(key)
+        rig_name = key.split("/", 1)[0] if "/" in key else request.form.get("rig", "rig01")
+        return redirect(url_for("index", rig=rig_name))
 
     return app
 

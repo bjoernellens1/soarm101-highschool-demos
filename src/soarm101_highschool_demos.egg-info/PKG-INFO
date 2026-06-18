@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: soarm101-highschool-demos
+Version: 0.2.0
+Summary: Self-contained 3-hour high-school demo repo for SO-ARM101 / SO-101 with LeRobot
+Requires-Python: >=3.12
+Requires-Dist: flask>=3.0
+Requires-Dist: opencv-python>=4.8
+Requires-Dist: numpy>=1.24
+Requires-Dist: pyyaml>=6.0
+Provides-Extra: robot
+Requires-Dist: lerobot[feetech]; extra == "robot"
+Provides-Extra: foxglove
+Requires-Dist: foxglove-sdk; extra == "foxglove"
+Provides-Extra: dev
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: pytest; extra == "dev"

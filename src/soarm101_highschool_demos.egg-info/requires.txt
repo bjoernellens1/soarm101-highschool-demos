@@ -1,0 +1,14 @@
+flask>=3.0
+opencv-python>=4.8
+numpy>=1.24
+pyyaml>=6.0
+
+[dev]
+ruff
+pytest
+
+[foxglove]
+foxglove-sdk
+
+[robot]
+lerobot[feetech]

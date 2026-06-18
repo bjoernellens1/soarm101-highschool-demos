@@ -1,0 +1,174 @@
+
+
+=== 2026-06-18 11:27:33 ===
++ lerobot-replay --robot.type=so101_follower --robot.port=/dev/so101/rig01_follower --robot.id=hs_rig01_follower --dataset.repo_id=local/hs-so101-rig01-cube-sort --dataset.episode=0
+INFO 2026-06-18 11:27:38 t_replay.py:100 {'dataset': {'episode': 0,
+             'fps': 30,
+             'repo_id': 'local/hs-so101-rig01-cube-sort',
+             'root': None},
+ 'play_sounds': True,
+ 'robot': {'calibration_dir': None,
+           'cameras': {},
+           'disable_torque_on_disconnect': True,
+           'id': 'hs_rig01_follower',
+           'max_relative_target': None,
+           'port': '/dev/so101/rig01_follower',
+           'use_degrees': True}}
+INFO 2026-06-18 11:27:38 eo_utils.py:106 Using video codec: libsvtav1
+Traceback (most recent call last):
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/lerobot_dataset.py", line 106, in __init__
+    self.load_metadata()
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/lerobot_dataset.py", line 166, in load_metadata
+    self.tasks = load_tasks(self.root)
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/utils.py", line 343, in load_tasks
+    tasks = pd.read_parquet(local_dir / DEFAULT_TASKS_PATH)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/pandas/io/parquet.py", line 671, in read_parquet
+    return impl.read(
+           ^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/pandas/io/parquet.py", line 253, in read
+    path_or_handle, handles, filesystem = _get_path_or_handle(
+                                          ^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/pandas/io/parquet.py", line 141, in _get_path_or_handle
+    handles = get_handle(
+              ^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/pandas/io/common.py", line 939, in get_handle
+    handle = open(handle, ioargs.mode)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/bjoern/.cache/huggingface/lerobot/local/hs-so101-rig01-cube-sort/meta/tasks.parquet'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 407, in hf_raise_for_status
+    response.raise_for_status()
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 404 Client Error: Not Found for url: https://huggingface.co/api/datasets/local/hs-so101-rig01-cube-sort/refs
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/bin/lerobot-replay", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/scripts/lerobot_replay.py", line 137, in main
+    replay()
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/configs/parser.py", line 233, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/scripts/lerobot_replay.py", line 105, in replay
+    dataset = LeRobotDataset(cfg.dataset.repo_id, root=cfg.dataset.root, episodes=[cfg.dataset.episode])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/lerobot_dataset.py", line 733, in __init__
+    self.meta = LeRobotDatasetMetadata(
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/lerobot_dataset.py", line 109, in __init__
+    self.revision = get_safe_version(self.repo_id, self.revision)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/utils.py", line 528, in get_safe_version
+    hub_versions = get_repo_versions(repo_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/utils.py", line 497, in get_repo_versions
+    repo_refs = api.list_repo_refs(repo_id, repo_type="dataset")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/huggingface_hub/hf_api.py", line 3248, in list_repo_refs
+    hf_raise_for_status(response)
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 457, in hf_raise_for_status
+    raise _format(RepositoryNotFoundError, message, response) from e
+huggingface_hub.errors.RepositoryNotFoundError: 404 Client Error. (Request ID: Root=1-6a33ba0a-172edd3f41d5a32a1e56d25c;87f8a50b-dcb5-4df4-b90c-c60a29455a4b)
+
+Repository Not Found for url: https://huggingface.co/api/datasets/local/hs-so101-rig01-cube-sort/refs.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated. For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+
+
+=== 2026-06-18 11:27:57 ===
++ lerobot-replay --robot.type=so101_follower --robot.port=/dev/so101/rig01_follower --robot.id=hs_rig01_follower --dataset.repo_id=local/hs-so101-rig01-cube-sort --dataset.episode=0
+INFO 2026-06-18 11:28:01 t_replay.py:100 {'dataset': {'episode': 0,
+             'fps': 30,
+             'repo_id': 'local/hs-so101-rig01-cube-sort',
+             'root': None},
+ 'play_sounds': True,
+ 'robot': {'calibration_dir': None,
+           'cameras': {},
+           'disable_torque_on_disconnect': True,
+           'id': 'hs_rig01_follower',
+           'max_relative_target': None,
+           'port': '/dev/so101/rig01_follower',
+           'use_degrees': True}}
+INFO 2026-06-18 11:28:01 eo_utils.py:106 Using video codec: libsvtav1
+Traceback (most recent call last):
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/lerobot_dataset.py", line 106, in __init__
+    self.load_metadata()
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/lerobot_dataset.py", line 166, in load_metadata
+    self.tasks = load_tasks(self.root)
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/utils.py", line 343, in load_tasks
+    tasks = pd.read_parquet(local_dir / DEFAULT_TASKS_PATH)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/pandas/io/parquet.py", line 671, in read_parquet
+    return impl.read(
+           ^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/pandas/io/parquet.py", line 253, in read
+    path_or_handle, handles, filesystem = _get_path_or_handle(
+                                          ^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/pandas/io/parquet.py", line 141, in _get_path_or_handle
+    handles = get_handle(
+              ^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/pandas/io/common.py", line 939, in get_handle
+    handle = open(handle, ioargs.mode)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/bjoern/.cache/huggingface/lerobot/local/hs-so101-rig01-cube-sort/meta/tasks.parquet'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 407, in hf_raise_for_status
+    response.raise_for_status()
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 404 Client Error: Not Found for url: https://huggingface.co/api/datasets/local/hs-so101-rig01-cube-sort/refs
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/bin/lerobot-replay", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/scripts/lerobot_replay.py", line 137, in main
+    replay()
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/configs/parser.py", line 233, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/scripts/lerobot_replay.py", line 105, in replay
+    dataset = LeRobotDataset(cfg.dataset.repo_id, root=cfg.dataset.root, episodes=[cfg.dataset.episode])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/lerobot_dataset.py", line 733, in __init__
+    self.meta = LeRobotDatasetMetadata(
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/lerobot_dataset.py", line 109, in __init__
+    self.revision = get_safe_version(self.repo_id, self.revision)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/utils.py", line 528, in get_safe_version
+    hub_versions = get_repo_versions(repo_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/lerobot/datasets/utils.py", line 497, in get_repo_versions
+    repo_refs = api.list_repo_refs(repo_id, repo_type="dataset")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/huggingface_hub/hf_api.py", line 3248, in list_repo_refs
+    hf_raise_for_status(response)
+  File "/home/bjoern/git/soarm101-highschool-demos/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 457, in hf_raise_for_status
+    raise _format(RepositoryNotFoundError, message, response) from e
+huggingface_hub.errors.RepositoryNotFoundError: 404 Client Error. (Request ID: Root=1-6a33ba21-1b78dded00b4a86b0b93981f;5796d1f1-3f16-4891-b55a-14898dc34980)
+
+Repository Not Found for url: https://huggingface.co/api/datasets/local/hs-so101-rig01-cube-sort/refs.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated. For more details, see https://huggingface.co/docs/huggingface_hub/authentication

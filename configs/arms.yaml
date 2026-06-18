@@ -24,12 +24,12 @@ rigs:
       type: so101_follower
       id: hs_rig01_follower
       port: /dev/so101/rig01_follower
-      serial_hint: "paste USB serial/by-id fragment here"
+      serial_hint: "usb-1a86_USB_Single_Serial_5AB9068906-if00"
     leader:
       type: so101_leader
       id: hs_rig01_leader
       port: /dev/so101/rig01_leader
-      serial_hint: "paste USB serial/by-id fragment here"
+      serial_hint: "usb-1a86_USB_Single_Serial_5AB9068765-if00"
     cameras:
       front:
         type: opencv

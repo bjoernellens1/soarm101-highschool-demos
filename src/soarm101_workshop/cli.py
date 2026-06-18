@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import os
 import subprocess
+from dataclasses import replace
 from pathlib import Path
 
 from .commands import (
@@ -21,6 +22,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="SO-ARM101 high-school workshop convenience CLI")
     parser.add_argument("--config", default=os.environ.get("ARMS_CONFIG", "configs/arms.yaml"))
     parser.add_argument("--rig", default=os.environ.get("RIG", "rig01"))
+    parser.add_argument("--no-cameras", action="store_true", default=os.environ.get("NO_CAMERAS") == "1", help="Tolerate no cameras connected")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("rigs", help="List configured stations")
@@ -73,6 +75,8 @@ def main() -> None:
         return
 
     rig = get_rig(args.rig, args.config)
+    if args.no_cameras:
+        rig = replace(rig, cameras={})
     builders = {
         "calibrate-follower": build_calibrate_follower,
         "calibrate-leader": build_calibrate_leader,

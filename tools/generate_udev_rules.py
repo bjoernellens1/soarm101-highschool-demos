@@ -21,6 +21,10 @@ def sanitize(value: str) -> str:
     value = value.strip()
     value = value.replace("/dev/serial/by-id/", "")
     value = value.replace("/dev/", "")
+    if value.startswith("usb-"):
+        value = value.removeprefix("usb-")
+    if value.endswith("-if00"):
+        value = value.removesuffix("-if00")
     return value
 
 
