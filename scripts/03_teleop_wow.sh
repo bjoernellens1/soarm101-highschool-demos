@@ -14,8 +14,10 @@ lerobot-teleoperate \
   --robot.type=so101_follower \
   --robot.port="$FOLLOWER_PORT" \
   --robot.id="$FOLLOWER_ID" \
+  --robot.calibration_dir=.calibration \
   "${CAMERA_ARGS[@]}" \
   --teleop.type=so101_leader \
   --teleop.port="$LEADER_PORT" \
   --teleop.id="$LEADER_ID" \
+  --teleop.calibration_dir=.calibration \
   --display_data=true

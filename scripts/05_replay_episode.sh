@@ -8,5 +8,6 @@ lerobot-replay \
   --robot.type=so101_follower \
   --robot.port="$FOLLOWER_PORT" \
   --robot.id="$FOLLOWER_ID" \
+  --robot.calibration_dir=.calibration \
   --dataset.repo_id="$REPO_ID" \
   --dataset.episode="$EPISODE"

@@ -16,10 +16,12 @@ lerobot-record \
   --robot.type=so101_follower \
   --robot.port="$FOLLOWER_PORT" \
   --robot.id="$FOLLOWER_ID" \
-  "${CAMERA_ARGS[@]}" \
+  --robot.calibration_dir=.calibration \
   --teleop.type=so101_leader \
   --teleop.port="$LEADER_PORT" \
   --teleop.id="$LEADER_ID" \
+  --teleop.calibration_dir=.calibration \
+  "${CAMERA_ARGS[@]}" \
   --display_data=true \
   --dataset.repo_id="${HF_USER}/${DATASET_NAME}" \
   --dataset.num_episodes=5 \

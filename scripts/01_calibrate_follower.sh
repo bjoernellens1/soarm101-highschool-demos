@@ -4,4 +4,5 @@ source scripts/_load_env.sh
 lerobot-calibrate \
   --robot.type=so101_follower \
   --robot.port="$FOLLOWER_PORT" \
-  --robot.id="$FOLLOWER_ID"
+  --robot.id="$FOLLOWER_ID" \
+  --robot.calibration_dir=.calibration
