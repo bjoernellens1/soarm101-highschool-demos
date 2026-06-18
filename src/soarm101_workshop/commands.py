@@ -167,16 +167,32 @@ def stop_process(key: str) -> bool:
     proc = running.process
     if proc.poll() is None:
         try:
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            pgid = os.getpgid(proc.pid)
         except OSError:
-            pass
+            pgid = None
+
+        if pgid is not None:
+            try:
+                os.killpg(pgid, signal.SIGTERM)
+            except OSError:
+                pass
+
         try:
             proc.wait(timeout=3)
         except subprocess.TimeoutExpired:
+            pass
+
+        if pgid is not None:
             try:
-                os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                os.killpg(pgid, signal.SIGKILL)
             except OSError:
                 pass
+        else:
+            try:
+                proc.kill()
+            except OSError:
+                pass
+
     _RUNNING.pop(key, None)
     return True
 
