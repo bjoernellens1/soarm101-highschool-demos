@@ -9,3 +9,4 @@ outputs/
 recordings/
 logs/
 .cache/
+*.egg-info/
