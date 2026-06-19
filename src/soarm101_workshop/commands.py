@@ -1,15 +1,10 @@
 from __future__ import annotations
 
-import os
 import shlex
 import subprocess
-import threading
-import time
-import signal
-from dataclasses import dataclass, field
 from pathlib import Path
 
-from .config import Rig, camera_cli_value, default_dataset_name, get_rig, list_rigs
+from .config import Rig, camera_cli_value, default_dataset_name
 
 def camera_exists(index_or_path: int | str) -> bool:
     try:
@@ -28,20 +23,6 @@ def camera_exists(index_or_path: int | str) -> bool:
     if isinstance(index_or_path, int):
         return Path(f"/dev/video{index_or_path}").exists()
     return Path(str(index_or_path)).exists()
-
-
-@dataclass
-class RunningCommand:
-    key: str
-    cmd: list[str]
-    process: subprocess.Popen
-    pgid: int | None = None
-    started_at: float = field(default_factory=time.time)
-
-
-_RUNNING: dict[str, RunningCommand] = {}
-# Flask serves requests on multiple threads; guard the shared registry.
-_RUNNING_LOCK = threading.Lock()
 
 
 def build_calibrate_follower(rig: Rig) -> list[str]:
@@ -148,110 +129,3 @@ def run_blocking(cmd: list[str], *, cwd: str | Path | None = None) -> int:
     print("+", shell_join(cmd))
     return subprocess.run(cmd, cwd=cwd, check=False).returncode
 
-
-def start_process(key: str, cmd: list[str], *, cwd: str | Path | None = None) -> RunningCommand:
-    stop_process(key)
-    logs_dir = Path("logs")
-    logs_dir.mkdir(exist_ok=True)
-    log_path = logs_dir / f"{key.replace('/', '_')}.log"
-    with log_path.open("ab") as log:
-        log.write(("\n\n=== " + time.strftime("%Y-%m-%d %H:%M:%S") + " ===\n").encode())
-        log.write(("+ " + shell_join(cmd) + "\n").encode())
-        log.flush()
-        # start_new_session=True makes the child its own session/group leader,
-        # so its pid IS the process group id. Capture it now: looking it up later
-        # via os.getpgid() fails once the child exits, orphaning its children.
-        proc = subprocess.Popen(cmd, cwd=cwd, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
-    # The child inherited its own copy of the fd; close ours so it does not leak.
-    running = RunningCommand(key=key, cmd=cmd, process=proc, pgid=proc.pid)
-    with _RUNNING_LOCK:
-        _RUNNING[key] = running
-    return running
-
-
-def stop_process(key: str) -> bool:
-    with _RUNNING_LOCK:
-        running = _RUNNING.get(key)
-    if not running:
-        return False
-    proc = running.process
-    if proc.poll() is None:
-        # Prefer the pgid captured at spawn time; fall back to a live lookup only
-        # if it was never recorded.
-        pgid = running.pgid
-        if pgid is None:
-            try:
-                pgid = os.getpgid(proc.pid)
-            except OSError:
-                pgid = None
-
-        if pgid is not None:
-            try:
-                os.killpg(pgid, signal.SIGTERM)
-            except OSError:
-                pass
-
-        try:
-            proc.wait(timeout=3)
-        except subprocess.TimeoutExpired:
-            pass
-
-        if pgid is not None:
-            try:
-                os.killpg(pgid, signal.SIGKILL)
-            except OSError:
-                pass
-        else:
-            try:
-                proc.kill()
-            except OSError:
-                pass
-
-    with _RUNNING_LOCK:
-        _RUNNING.pop(key, None)
-    return True
-
-
-def clear_process(key: str) -> None:
-    with _RUNNING_LOCK:
-        _RUNNING.pop(key, None)
-
-
-def status() -> dict[str, dict[str, str | int | float | bool]]:
-    out = {}
-    with _RUNNING_LOCK:
-        items = list(_RUNNING.items())
-    for key, running in items:
-        proc = running.process
-        alive = proc.poll() is None
-        
-        log_text = ""
-        log_path = Path("logs") / f"{key.replace('/', '_')}.log"
-        if log_path.exists():
-            try:
-                with log_path.open("rb") as f:
-                    f.seek(0, 2)
-                    size = f.tell()
-                    f.seek(max(0, size - 4000))
-                    log_text = f.read().decode("utf-8", errors="replace")
-                    lines = log_text.splitlines()[-20:]
-                    log_text = "\n".join(lines)
-            except Exception as e:
-                log_text = f"Error reading log: {e}"
-
-        out[key] = {
-            "alive": alive,
-            "returncode": proc.returncode if proc.returncode is not None else "",
-            "started_at": running.started_at,
-            "cmd": shell_join(running.cmd),
-            "log": log_text,
-        }
-    return out
-
-
-def get_rig_from_env() -> Rig:
-    return get_rig(os.environ.get("RIG", "rig01"), os.environ.get("ARMS_CONFIG", "configs/arms.yaml"))
-
-
-def available_rigs() -> list[str]:
-    return list_rigs(os.environ.get("ARMS_CONFIG", "configs/arms.yaml"))
