@@ -44,36 +44,49 @@ PYTHON_BIN=python3.12 bash scripts/11_install_linux_pip.sh
 source .venv/bin/activate
 ```
 
-Verify:
+## API-based architecture
+
+The project is API-first: a FastAPI service (`soarm-api`) is the single source of
+truth for every rig operation. The `soarm-workshop` CLI and the web UI are both
+clients of that API.
+
+Start the API (serves the web UI at `/` and OpenAPI docs at `/docs`):
+
+```bash
+export SOARM_API_TOKEN=choose-a-token      # or SOARM_ALLOW_LOCALHOST_NO_AUTH=1 for local-only
+soarm-api                                  # http://127.0.0.1:7860
+# or: bash scripts/32_web_launcher.sh
+```
+
+Configuration (env, all prefixed `SOARM_`): `SOARM_API_TOKEN`, `SOARM_HOST`
+(default `127.0.0.1`), `SOARM_PORT` (default `7860`), `SOARM_CONFIG_PATH`,
+`SOARM_ALLOW_LOCALHOST_NO_AUTH`, `SOARM_CORS_ORIGINS`.
+
+The CLI talks to a running API (`SOARM_API_URL`, default `http://127.0.0.1:7860`;
+`SOARM_API_TOKEN` for auth):
 
 ```bash
 soarm-workshop rigs
 soarm-workshop find-ports
+soarm-workshop --rig rig01 teleop
+soarm-workshop status
+soarm-workshop stop-all
 ```
 
-## Local browser launcher
-
-Start the teacher UI:
+Direct HTTP (token required unless loopback bypass is enabled):
 
 ```bash
-bash scripts/32_web_launcher.sh
+curl -H "Authorization: Bearer $SOARM_API_TOKEN" http://127.0.0.1:7860/api/rigs
+curl -X POST -H "Authorization: Bearer $SOARM_API_TOKEN" \
+  http://127.0.0.1:7860/api/rigs/rig01/teleop
 ```
 
-Then open:
+The web UI exposes the workshop-critical actions: select station, calibrate
+follower/leader, teleop, record, replay, and stop. **Single worker only** —
+serial ports are exclusive, so never run more than one API worker.
 
-```text
-http://127.0.0.1:7860
-```
-
-The launcher is intentionally small and local-only. It exposes only the workshop-critical actions:
-
-- select station / rig
-- calibrate follower
-- calibrate leader
-- start teleop
-- record local mini dataset
-- replay episode
-- stop commands
+Deploy artifacts: `deploy/soarm-api.service` (systemd) and `deploy/Dockerfile`
+(needs USB `--device` passthrough). See those files for usage.
 
 ## Multiple arms on one PC
 

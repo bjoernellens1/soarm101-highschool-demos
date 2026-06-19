@@ -1,0 +1,18 @@
+# systemd unit for the SO-ARM101 Workshop API.
+# Copy to /etc/systemd/system/, edit USER/paths, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now soarm-api
+[Unit]
+Description=SO-ARM101 Workshop API
+After=network.target
+
+[Service]
+Type=simple
+User=USER
+WorkingDirectory=/home/USER/git/soarm101-highschool-demos
+EnvironmentFile=/home/USER/git/soarm101-highschool-demos/.env
+ExecStart=/home/USER/git/soarm101-highschool-demos/.venv/bin/soarm-api
+Restart=on-failure
+# Single worker is mandatory: serial ports are an exclusive resource.
+
+[Install]
+WantedBy=multi-user.target
