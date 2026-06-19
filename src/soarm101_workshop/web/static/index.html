@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SO-ARM101 Workshop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>SO-ARM101 Workshop</h1>
+    <p>API-driven launcher for calibration, teleop, recording, and replay.</p>
+    <p class="hint">No authentication on the server beyond this token — keep it bound to localhost.</p>
+  </header>
+
+  <main class="dashboard-layout">
+    <aside class="sidebar">
+      <section class="card">
+        <h2>Connection</h2>
+        <label>API token <input id="token" type="password" placeholder="SOARM_API_TOKEN"></label>
+        <button class="full" onclick="saveToken()">Save &amp; load rigs</button>
+      </section>
+
+      <section class="card">
+        <h2>Station</h2>
+        <select id="rig" onchange="refresh()"></select>
+      </section>
+
+      <section class="card">
+        <h2>Actions</h2>
+        <p class="hint">Clear the workspace before any motion.</p>
+        <button class="full" onclick="start('calibrate-follower')">Calibrate follower</button>
+        <button class="full mt" onclick="start('calibrate-leader')">Calibrate leader</button>
+        <label class="inline"><input id="teleop_display" type="checkbox"> Live Rerun view</label>
+        <button class="full" onclick="startTeleop()">Start teleop</button>
+      </section>
+
+      <section class="card">
+        <h2>Record dataset</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+          <label>Episodes <input id="rec_episodes" type="number" min="1" max="50" value="5"></label>
+          <label>Ep. sec <input id="rec_eps" type="number" min="5" max="600" value="20"></label>
+        </div>
+        <label>Reset sec <input id="rec_reset" type="number" min="0" max="120" value="10"></label>
+        <label>HF user <input id="rec_hf" value="local"></label>
+        <label>Dataset name <input id="rec_name" placeholder="(auto)"></label>
+        <label class="inline"><input id="rec_resume" type="checkbox"> Resume existing</label>
+        <button class="full mt" onclick="startRecord()">Start recording</button>
+      </section>
+
+      <section class="card">
+        <h2>Replay</h2>
+        <label>repo_id <input id="rep_repo" placeholder="local/hs-so101-rig01-cube-sort"></label>
+        <label>Episode <input id="rep_ep" type="number" min="0" value="0"></label>
+        <button class="full" onclick="startReplay()">Replay</button>
+      </section>
+    </aside>
+
+    <div class="main-content">
+      <section class="card danger">
+        <h2>Safety</h2>
+        <p class="safety-text">Light foam objects, slow speeds, taped zones, one adult near power.</p>
+        <button class="stop" onclick="stopAll()">EMERGENCY STOP ALL</button>
+      </section>
+      <section class="card">
+        <h2>Running</h2>
+        <div id="status"></div>
+      </section>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
