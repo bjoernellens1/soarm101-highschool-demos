@@ -6,4 +6,5 @@ configs/arms.env
 *.avi
 outputs/
 recordings/
+logs/
 .cache/

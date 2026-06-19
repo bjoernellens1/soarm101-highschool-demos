@@ -33,13 +33,21 @@ rigs:
     cameras:
       front:
         type: opencv
+        # index 0 is the usual single-camera default. Beware: a virtual camera
+        # (e.g. OBS v4l2loopback) can squat on index 0 and shift the real USB
+        # camera to 1+. If teleop runs "no cameras found", check `v4l2-ctl
+        # --list-devices` and set the real CAPTURE index here, or prefer a stable
+        # path like /dev/v4l/by-id/...-video-index0. Per-station overrides can go
+        # in configs/arms.env (CAMERA_CONFIG), which is gitignored.
         index_or_path: 0
         width: 640
         height: 480
         fps: 30
 
+  # NOTE (2026-06-19): rig02 is UNTESTED on real hardware — only rig01 was attached
+  # and validated. Ports/serial_hint below are placeholders. See docs/multi_arm_setup.md.
   rig02:
-    label: "Station 2 - optional second arm pair"
+    label: "Station 2 - optional second arm pair (UNTESTED)"
     task_text: "Pick up the blue cube and place it in the right bin"
     follower:
       type: so101_follower

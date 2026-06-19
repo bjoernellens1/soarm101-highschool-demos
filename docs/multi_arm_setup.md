@@ -1,5 +1,12 @@
 # Multiple SO-ARM101 stations on one PC
 
+> **⚠️ Status (2026-06-19): multi-arm / `rig02` is UNTESTED on real hardware.**
+> The single-rig pipeline (calibration, teleop, record, replay, pose record/replay)
+> has been validated end-to-end on `rig01`. The two-rig path
+> (`scripts/33_parallel_teleop_two_rigs.sh`, `bimanual_demos`) has **not** been run
+> because only one arm pair was attached. Treat `rig02` config below as a template,
+> not a verified setup. Re-run the eval plan's Phase 7 once a second pair is connected.
+
 The core rule is: never rely on `/dev/ttyACM0` and `/dev/ttyACM1` during a
 workshop with multiple arms. USB enumeration order can change.
 

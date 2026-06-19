@@ -14,7 +14,7 @@ This repo intentionally avoids ROS2 for the base workshop. It uses LeRobot's off
 |---:|---|---|
 | 0:00-0:15 | Wow demo: teleop or replay a saved episode | `scripts/03_teleop_wow.sh` or `scripts/05_replay_episode.sh` |
 | 0:15-0:45 | Students drive the follower with the leader arm | `scripts/03_teleop_wow.sh` |
-| 0:45-1:20 | Pose automation: define HOME, PICK, DROP | `python -m soarm101_workshop.pose_recorder` |
+| 0:45-1:20 | Pose automation: define HOME, PICK, DROP | `python -m soarm101_workshop.pose_recorder --port <follower-port> --id <follower-id>` |
 | 1:20-1:35 | Break + robot wave / dance | `python -m soarm101_workshop.replay_poses` |
 | 1:35-2:20 | Camera color detection | `python scripts/06_color_sort_cv.py` |
 | 2:20-2:55 | Sorting / rescue mini challenge | `docs/teacher_checklist.md` |
@@ -204,6 +204,21 @@ bash scripts/31_rig_record_local.sh rig01
 ```bash
 bash scripts/05_replay_episode.sh YOUR_HF_USER/hs-so101-cube-sort 0
 ```
+
+## Pose teaching (named poses)
+
+Record named joint poses, then replay them as a tiny choreography. Both commands
+require `--port` (and should use the calibrated `--id`):
+
+```bash
+python -m soarm101_workshop.pose_recorder --port /dev/so101/rig01_follower --id hs_rig01_follower
+python -m soarm101_workshop.replay_poses  --port /dev/so101/rig01_follower --id hs_rig01_follower
+```
+
+Note: `pose_recorder` reads the follower's own joint angles, so to hand-teach a
+pose you must first disable follower torque (otherwise you only capture the
+current, stiff position). For robust dataset-based playback prefer the official
+`lerobot-replay` path (see "Replay an episode").
 
 ## Camera-only color demo
 
