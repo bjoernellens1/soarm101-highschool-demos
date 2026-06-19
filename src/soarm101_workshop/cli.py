@@ -18,6 +18,12 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("teleop")
     sub.add_parser("calibrate-follower")
     sub.add_parser("calibrate-leader")
+    sub.add_parser("safe-home")
+
+    orch = sub.add_parser("orchestra")
+    orch.add_argument("repo_id")
+    orch.add_argument("--episode", type=int, default=0)
+    orch.add_argument("--stations", nargs="+", help="default: all configured stations")
 
     rec = sub.add_parser("record")
     rec.add_argument("--episodes", type=int, default=5)
@@ -56,8 +62,15 @@ def main() -> None:
             print(json.dumps(c.get("/api/processes"), indent=2))
         elif args.cmd == "teleop":
             print(c.post(f"/api/rigs/{args.rig}/teleop"))
-        elif args.cmd in ("calibrate-follower", "calibrate-leader"):
+        elif args.cmd in ("calibrate-follower", "calibrate-leader", "safe-home"):
             print(c.post(f"/api/rigs/{args.rig}/{args.cmd}"))
+        elif args.cmd == "orchestra":
+            print(
+                c.post(
+                    "/api/orchestra/play",
+                    {"repo_id": args.repo_id, "episode": args.episode, "stations": args.stations},
+                )
+            )
         elif args.cmd == "record":
             print(
                 c.post(
