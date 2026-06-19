@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, abort, redirect, render_template, request, url_for
 
 from .commands import (
     build_calibrate_follower,
@@ -19,6 +19,31 @@ from .commands import (
 )
 from .config import get_rig, list_rigs
 
+VALID_ACTIONS = {"teleop", "calibrate_follower", "calibrate_leader", "record", "replay"}
+
+
+def _form_int(name: str, default: int, *, lo: int, hi: int) -> int:
+    """Parse a bounded int from form input, falling back to default on garbage.
+
+    Without this an empty or non-numeric field raises and Flask returns a 500.
+    """
+    raw = request.form.get(name)
+    if raw is None or raw == "":
+        return default
+    try:
+        return max(lo, min(hi, int(raw)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _selected_rig(cfg: str, source: str):
+    """Resolve a rig name from the request, returning 400 instead of 500 if unknown."""
+    name = (request.values.get("rig") if source == "values" else request.form.get("rig")) or "rig01"
+    try:
+        return get_rig(name, cfg)
+    except KeyError:
+        abort(400, f"Unknown rig: {name!r}")
+
 
 def create_app() -> Flask:
     here = Path(__file__).parent
@@ -33,7 +58,9 @@ def create_app() -> Flask:
     def index():
         cfg = app.config["ARMS_CONFIG"]
         rigs = [get_rig(name, cfg) for name in list_rigs(cfg)]
-        selected = request.args.get("rig") or (rigs[0].name if rigs else "rig01")
+        requested = request.args.get("rig")
+        names = {r.name for r in rigs}
+        selected = requested if requested in names else (rigs[0].name if rigs else "rig01")
         rig = get_rig(selected, cfg)
         hf_user = os.environ.get("HF_USER", "local")
         dataset_name = os.environ.get("DATASET_NAME", f"hs-so101-{rig.name}-cube-sort")
@@ -43,12 +70,14 @@ def create_app() -> Flask:
             "teleop": shell_join(build_teleop(rig, check_cameras=False)),
             "record local": shell_join(build_record(rig, hf_user=hf_user, dataset_name=dataset_name, check_cameras=False)),
         }
+        st = status()
         return render_template(
             "index.html",
             rigs=rigs,
             rig=rig,
             selected=selected,
-            status=status(),
+            status=st,
+            any_alive=any(item["alive"] for item in st.values()),
             hf_user=hf_user,
             dataset_name=dataset_name,
             cmds=cmds,
@@ -56,12 +85,14 @@ def create_app() -> Flask:
 
     @app.post("/start/<action>")
     def start(action: str):
+        if action not in VALID_ACTIONS:
+            abort(400, f"Unknown action: {action}")
         cfg = app.config["ARMS_CONFIG"]
-        rig_name = request.form.get("rig", "rig01")
-        rig = get_rig(rig_name, cfg)
+        rig = _selected_rig(cfg, "form")
+        display_data = request.form.get("display_data") == "on"
         key = f"{rig.name}/{action}"
         if action == "teleop":
-            cmd = build_teleop(rig)
+            cmd = build_teleop(rig, display_data=display_data)
         elif action == "calibrate_follower":
             cmd = build_calibrate_follower(rig)
         elif action == "calibrate_leader":
@@ -71,18 +102,17 @@ def create_app() -> Flask:
                 rig,
                 hf_user=request.form.get("hf_user") or "local",
                 dataset_name=request.form.get("dataset_name") or None,
-                episodes=int(request.form.get("episodes") or 5),
-                episode_time_s=int(request.form.get("episode_time_s") or 20),
-                reset_time_s=int(request.form.get("reset_time_s") or 10),
+                episodes=_form_int("episodes", 5, lo=1, hi=20),
+                episode_time_s=_form_int("episode_time_s", 20, lo=5, hi=120),
+                reset_time_s=_form_int("reset_time_s", 10, lo=3, hi=60),
                 push_to_hub=request.form.get("push_to_hub") == "on",
                 resume=request.form.get("resume") == "on",
+                display_data=display_data,
             )
-        elif action == "replay":
+        else:  # replay
             repo_id = request.form.get("repo_id") or f"local/hs-so101-{rig.name}-cube-sort"
-            episode = int(request.form.get("episode") or 0)
+            episode = _form_int("episode", 0, lo=0, hi=10_000)
             cmd = build_replay(rig, repo_id, episode)
-        else:
-            raise ValueError(action)
         start_process(key, cmd)
         return redirect(url_for("index", rig=rig.name))
 
@@ -112,6 +142,13 @@ def main() -> None:
     app = create_app()
     host = os.environ.get("SOARM_WEB_HOST", "127.0.0.1")
     port = int(os.environ.get("SOARM_WEB_PORT", "7860"))
+    # This launcher has no authentication and can start/stop real arm motion.
+    # It is intended to bind to localhost only. Warn loudly if exposed.
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        print(
+            f"WARNING: binding to {host} exposes unauthenticated robot control on "
+            "the network. Use 127.0.0.1 unless you trust every device on the LAN."
+        )
     print(f"Open http://{host}:{port}")
     app.run(host=host, port=port, debug=False)
 

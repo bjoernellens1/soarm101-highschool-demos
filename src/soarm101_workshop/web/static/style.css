@@ -179,6 +179,41 @@ dd { margin: 0; word-break: break-word; }
 .running:first-child { border-top: none; padding-top: 0; }
 .running code { display: block; margin: 0.8rem 0; color: #cbd5e1; }
 
+/* Generic helpers */
+.hint { color: #94a3b8; font-size: 0.9rem; margin-top: 0; }
+.hint.italic { font-style: italic; }
+.safety-text { color: #cbd5e1; }
+button.full { width: 100%; }
+button.mt { margin-top: 1rem; }
+button.secondary { background: #475569; box-shadow: none; }
+button.secondary:hover { background: #64748b; }
+
+/* Running-command panel */
+.proc {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+}
+.proc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.proc-name { font-size: 1.1rem; color: #60a5fa; }
+.proc-exit { color: var(--danger); font-weight: bold; }
+.proc-cmd { display: block; padding: 0.5rem; background: rgba(0, 0, 0, 0.4); border-radius: 8px; }
+.proc-log-wrap { margin-top: 1rem; }
+.proc-log-label { color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+.proc-log {
+  margin-top: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  background: #0f172a;
+  color: #34d399;
+}
+.proc-actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
+
+.cmd-name { color: #60a5fa; margin-bottom: 0.5rem; }
+.cmd-pre { margin-top: 0; }
+
 @media (min-width: 1024px) {
   .dashboard-layout {
     display: grid;
