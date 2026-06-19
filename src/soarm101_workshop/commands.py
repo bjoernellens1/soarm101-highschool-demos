@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shlex
 import subprocess
+import threading
 import time
 import signal
 from dataclasses import dataclass, field
@@ -34,10 +35,13 @@ class RunningCommand:
     key: str
     cmd: list[str]
     process: subprocess.Popen
+    pgid: int | None = None
     started_at: float = field(default_factory=time.time)
 
 
 _RUNNING: dict[str, RunningCommand] = {}
+# Flask serves requests on multiple threads; guard the shared registry.
+_RUNNING_LOCK = threading.Lock()
 
 
 def build_calibrate_follower(rig: Rig) -> list[str]:
@@ -60,7 +64,7 @@ def build_calibrate_leader(rig: Rig) -> list[str]:
     ]
 
 
-def build_teleop(rig: Rig, display_data: bool = True, check_cameras: bool = True) -> list[str]:
+def build_teleop(rig: Rig, display_data: bool = False, check_cameras: bool = True) -> list[str]:
     cmd = [
         "lerobot-teleoperate",
         f"--robot.type={rig.follower.type}",
@@ -100,7 +104,7 @@ def build_record(
     episode_time_s: int = 20,
     reset_time_s: int = 10,
     push_to_hub: bool = False,
-    display_data: bool = True,
+    display_data: bool = False,
     check_cameras: bool = True,
     resume: bool = False,
 ) -> list[str]:
@@ -150,26 +154,36 @@ def start_process(key: str, cmd: list[str], *, cwd: str | Path | None = None) ->
     logs_dir = Path("logs")
     logs_dir.mkdir(exist_ok=True)
     log_path = logs_dir / f"{key.replace('/', '_')}.log"
-    log = log_path.open("ab")
-    log.write(("\n\n=== " + time.strftime("%Y-%m-%d %H:%M:%S") + " ===\n").encode())
-    log.write(("+ " + shell_join(cmd) + "\n").encode())
-    log.flush()
-    proc = subprocess.Popen(cmd, cwd=cwd, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
-    running = RunningCommand(key=key, cmd=cmd, process=proc)
-    _RUNNING[key] = running
+    with log_path.open("ab") as log:
+        log.write(("\n\n=== " + time.strftime("%Y-%m-%d %H:%M:%S") + " ===\n").encode())
+        log.write(("+ " + shell_join(cmd) + "\n").encode())
+        log.flush()
+        # start_new_session=True makes the child its own session/group leader,
+        # so its pid IS the process group id. Capture it now: looking it up later
+        # via os.getpgid() fails once the child exits, orphaning its children.
+        proc = subprocess.Popen(cmd, cwd=cwd, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+    # The child inherited its own copy of the fd; close ours so it does not leak.
+    running = RunningCommand(key=key, cmd=cmd, process=proc, pgid=proc.pid)
+    with _RUNNING_LOCK:
+        _RUNNING[key] = running
     return running
 
 
 def stop_process(key: str) -> bool:
-    running = _RUNNING.get(key)
+    with _RUNNING_LOCK:
+        running = _RUNNING.get(key)
     if not running:
         return False
     proc = running.process
     if proc.poll() is None:
-        try:
-            pgid = os.getpgid(proc.pid)
-        except OSError:
-            pgid = None
+        # Prefer the pgid captured at spawn time; fall back to a live lookup only
+        # if it was never recorded.
+        pgid = running.pgid
+        if pgid is None:
+            try:
+                pgid = os.getpgid(proc.pid)
+            except OSError:
+                pgid = None
 
         if pgid is not None:
             try:
@@ -193,17 +207,21 @@ def stop_process(key: str) -> bool:
             except OSError:
                 pass
 
-    _RUNNING.pop(key, None)
+    with _RUNNING_LOCK:
+        _RUNNING.pop(key, None)
     return True
 
 
 def clear_process(key: str) -> None:
-    _RUNNING.pop(key, None)
+    with _RUNNING_LOCK:
+        _RUNNING.pop(key, None)
 
 
 def status() -> dict[str, dict[str, str | int | float | bool]]:
     out = {}
-    for key, running in list(_RUNNING.items()):
+    with _RUNNING_LOCK:
+        items = list(_RUNNING.items())
+    for key, running in items:
         proc = running.process
         alive = proc.poll() is None
         

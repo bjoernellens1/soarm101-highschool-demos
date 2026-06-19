@@ -29,7 +29,8 @@ def main() -> None:
     sub.add_parser("find-ports", help="Show USB serial devices")
     sub.add_parser("calibrate-follower")
     sub.add_parser("calibrate-leader")
-    sub.add_parser("teleop")
+    tel = sub.add_parser("teleop")
+    tel.add_argument("--display-data", action="store_true", help="Open the Rerun live view (spawns a viewer that outlives the run)")
 
     rec = sub.add_parser("record")
     rec.add_argument("--hf-user", default=os.environ.get("HF_USER", "local"))
@@ -38,6 +39,8 @@ def main() -> None:
     rec.add_argument("--episode-time-s", type=int, default=20)
     rec.add_argument("--reset-time-s", type=int, default=10)
     rec.add_argument("--push-to-hub", action="store_true")
+    rec.add_argument("--resume", action="store_true", help="Append to an existing dataset instead of failing if it exists")
+    rec.add_argument("--display-data", action="store_true", help="Open the Rerun live view")
 
     replay = sub.add_parser("replay")
     replay.add_argument("repo_id")
@@ -80,10 +83,14 @@ def main() -> None:
     builders = {
         "calibrate-follower": build_calibrate_follower,
         "calibrate-leader": build_calibrate_leader,
-        "teleop": build_teleop,
     }
     if args.cmd in builders:
         cmd = builders[args.cmd](rig)
+        print(shell_join(cmd))
+        raise SystemExit(run_blocking(cmd))
+
+    if args.cmd == "teleop":
+        cmd = build_teleop(rig, display_data=args.display_data)
         print(shell_join(cmd))
         raise SystemExit(run_blocking(cmd))
 
@@ -96,6 +103,8 @@ def main() -> None:
             episode_time_s=args.episode_time_s,
             reset_time_s=args.reset_time_s,
             push_to_hub=args.push_to_hub,
+            resume=args.resume,
+            display_data=args.display_data,
         )
         print(shell_join(cmd))
         raise SystemExit(run_blocking(cmd))
