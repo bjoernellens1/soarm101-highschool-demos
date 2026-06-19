@@ -11,12 +11,20 @@ from ...commands import (
     build_calibrate_leader,
     build_record,
     build_replay,
+    build_safe_home,
     build_teleop,
     shell_join,
 )
-from ...config import get_rig
+from ...config import get_rig, list_rigs, resolve_rig_name
 from ..auth import require_token
-from ..models import ActionResult, ProcessStatus, RecordParams, ReplayParams, TeleopParams
+from ..models import (
+    ActionResult,
+    OrchestraParams,
+    ProcessStatus,
+    RecordParams,
+    ReplayParams,
+    TeleopParams,
+)
 from ..service import manager
 from ..settings import get_settings
 
@@ -31,7 +39,8 @@ def _rig(rig: str):
 
 
 async def _start(rig: str, action: str, cmd: list[str]) -> ActionResult:
-    key = f"{rig}/{action}"
+    # Normalise station_N aliases so process keys are always the canonical rigNN.
+    key = f"{resolve_rig_name(rig)}/{action}"
     rp = await manager.start(key, cmd)
     return ActionResult(key=key, pid=rp.pid, cmd=shell_join(cmd))
 
@@ -76,6 +85,25 @@ async def start_record(rig: str, params: RecordParams = Body(default=RecordParam
 @router.post("/rigs/{rig}/replay", response_model=ActionResult)
 async def start_replay(rig: str, params: ReplayParams):
     return await _start(rig, "replay", build_replay(_rig(rig), params.repo_id, params.episode))
+
+
+@router.post("/rigs/{rig}/safe-home", response_model=ActionResult)
+async def start_safe_home(rig: str):
+    return await _start(rig, "safe-home", build_safe_home(_rig(rig)))
+
+
+@router.post("/orchestra/play", response_model=list[ActionResult])
+async def orchestra_play(params: OrchestraParams):
+    """Robot Orchestra: replay the same dataset on every station's follower,
+    launched back-to-back so the arms move (near-)synchronously."""
+    cfg = get_settings().config_path
+    stations = params.stations or list_rigs(cfg)
+    results = []
+    for station in stations:
+        r = _rig(station)
+        cmd = build_replay(r, params.repo_id, params.episode)
+        results.append(await _start(r.name, "orchestra", cmd))
+    return results
 
 
 # Catch-all registered AFTER the specific actions above so a bad action name

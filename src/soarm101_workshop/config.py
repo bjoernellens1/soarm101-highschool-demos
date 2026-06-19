@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -38,9 +39,20 @@ def list_rigs(path: str | Path = "configs/arms.yaml") -> list[str]:
     return sorted(cfg.get("rigs", {}).keys())
 
 
+def resolve_rig_name(name: str) -> str:
+    """Map the workshop document's ``station_N`` aliases onto ``rigNN`` ids.
+
+    ``station_1`` -> ``rig01`` ... ``station_5`` -> ``rig05``. Any other name is
+    returned unchanged so existing ``rigNN`` ids keep working.
+    """
+    m = re.fullmatch(r"station_(\d+)", name)
+    return f"rig{int(m.group(1)):02d}" if m else name
+
+
 def get_rig(name: str = "rig01", path: str | Path = "configs/arms.yaml") -> Rig:
     cfg = load_config(path)
     rigs = cfg.get("rigs", {})
+    name = resolve_rig_name(name)
     if name not in rigs:
         valid = ", ".join(sorted(rigs)) or "<none>"
         raise KeyError(f"Unknown rig {name!r}. Valid rigs: {valid}")

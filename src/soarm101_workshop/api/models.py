@@ -25,6 +25,12 @@ class ReplayParams(BaseModel):
     episode: int = Field(0, ge=0)
 
 
+class OrchestraParams(BaseModel):
+    repo_id: str
+    episode: int = Field(0, ge=0)
+    stations: list[str] | None = None  # default: all configured rigs
+
+
 class ArmInfo(BaseModel):
     role: str
     type: str

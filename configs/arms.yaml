@@ -67,6 +67,30 @@ rigs:
         height: 480
         fps: 30
 
+  # Stations 3-5 for a full 5-pair classroom (workshop doc). UNTESTED placeholders:
+  # fill serial_hint via scripts/12_snapshot_devices.sh and generate udev rules.
+  # The workshop scripts accept station_3..station_5 as aliases for rig03..rig05.
+  rig03:
+    label: "Station 3 (UNTESTED)"
+    task_text: "Pick up the cube and place it in the bin"
+    follower: {type: so101_follower, id: hs_rig03_follower, port: /dev/so101/rig03_follower, serial_hint: ""}
+    leader: {type: so101_leader, id: hs_rig03_leader, port: /dev/so101/rig03_leader, serial_hint: ""}
+    cameras: {}
+
+  rig04:
+    label: "Station 4 (UNTESTED)"
+    task_text: "Pick up the cube and place it in the bin"
+    follower: {type: so101_follower, id: hs_rig04_follower, port: /dev/so101/rig04_follower, serial_hint: ""}
+    leader: {type: so101_leader, id: hs_rig04_leader, port: /dev/so101/rig04_leader, serial_hint: ""}
+    cameras: {}
+
+  rig05:
+    label: "Station 5 (UNTESTED)"
+    task_text: "Pick up the cube and place it in the bin"
+    follower: {type: so101_follower, id: hs_rig05_follower, port: /dev/so101/rig05_follower, serial_hint: ""}
+    leader: {type: so101_leader, id: hs_rig05_leader, port: /dev/so101/rig05_leader, serial_hint: ""}
+    cameras: {}
+
 bimanual_demos:
   demo01:
     label: "Two-arm foam cube pass"

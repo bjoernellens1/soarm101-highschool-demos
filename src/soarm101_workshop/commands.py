@@ -121,6 +121,18 @@ def build_replay(rig: Rig, repo_id: str, episode: int = 0) -> list[str]:
     ]
 
 
+def build_safe_home(rig: Rig) -> list[str]:
+    return [
+        "python",
+        "-m",
+        "soarm101_workshop.safe_home",
+        "--port",
+        rig.follower.port,
+        "--id",
+        rig.follower.id,
+    ]
+
+
 def shell_join(cmd: list[str]) -> str:
     return " ".join(shlex.quote(x) for x in cmd)
 
