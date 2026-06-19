@@ -16,7 +16,7 @@ from .settings import get_settings
 async def lifespan(app: FastAPI):
     killed = await manager.reconcile()
     if killed:
-        print(f"Reaped {killed} orphaned process group(s) from a previous run.")
+        print(f"Reaped {killed} orphaned process group(s) from a previous run.", flush=True)
     yield
     await manager.stop_all()
 
