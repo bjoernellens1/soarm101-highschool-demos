@@ -1,10 +1,14 @@
 [project]
 name = "soarm101-highschool-demos"
-version = "0.2.0"
+version = "0.3.0"
 description = "Self-contained 3-hour high-school demo repo for SO-ARM101 / SO-101 with LeRobot"
 requires-python = ">=3.12"
 dependencies = [
-  "flask>=3.0",
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.29",
+  "httpx>=0.27",
+  "pydantic-settings>=2.2",
+  "sse-starlette>=2.1",
   "opencv-python>=4.8",
   "numpy>=1.24",
   "pyyaml>=6.0",
@@ -13,17 +17,21 @@ dependencies = [
 [project.optional-dependencies]
 robot = ["lerobot[feetech]"]
 foxglove = ["foxglove-sdk"]
-dev = ["ruff", "pytest"]
+dev = ["ruff", "pytest", "pytest-asyncio"]
 
 [project.scripts]
+soarm-api = "soarm101_workshop.api.app:run"
 soarm-workshop = "soarm101_workshop.cli:main"
-soarm-web = "soarm101_workshop.web_app:main"
 
 [tool.setuptools.package-data]
-soarm101_workshop = ["web/templates/*.html", "web/static/*.css"]
+soarm101_workshop = ["web/static/*"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
