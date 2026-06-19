@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
-import os
 import platform
 import shutil
 import subprocess
@@ -20,6 +19,9 @@ import time
 from pathlib import Path
 
 COMMON_CALIBRATION_DIRS = [
+    # Local project calibration dir (the layout this repo's scripts use via
+    # --robot.calibration_dir=.calibration). Listed first so it is always captured.
+    ".calibration",
     "~/.cache/huggingface/lerobot/calibration",
     "~/.cache/lerobot/calibration",
     "~/.cache/calibration",
@@ -72,14 +74,31 @@ def rel_name(path: Path) -> str:
     return "ABS/" + str(path).lstrip("/")
 
 
-def path_from_rel(name: str, target_home: Path, target_project: Path) -> Path | None:
+def path_from_rel(
+    name: str, target_home: Path, target_project: Path, allow_absolute: bool = False
+) -> Path | None:
+    """Resolve an archive member name to a destination path.
+
+    Guards against path traversal: a crafted archive could contain
+    ``HOME/../../etc/passwd`` or ``ABS/etc/passwd`` to write outside the intended
+    roots. We resolve the candidate and require it to stay within its declared
+    root; ``ABS/`` entries are refused unless explicitly allowed.
+    """
     if name.startswith("HOME/"):
-        return target_home / name[len("HOME/") :]
-    if name.startswith("PROJECT/"):
-        return target_project / name[len("PROJECT/") :]
-    if name.startswith("ABS/"):
-        return Path("/") / name[len("ABS/") :]
-    return None
+        root, dest = target_home, (target_home / name[len("HOME/") :]).resolve()
+    elif name.startswith("PROJECT/"):
+        root, dest = target_project, (target_project / name[len("PROJECT/") :]).resolve()
+    elif name.startswith("ABS/"):
+        if not allow_absolute:
+            print(f"refusing absolute archive path (use --allow-absolute): {name}")
+            return None
+        return (Path("/") / name[len("ABS/") :]).resolve()
+    else:
+        return None
+    if not _is_relative_to(dest, root.resolve()):
+        print(f"refusing path-traversal archive entry: {name}")
+        return None
+    return dest
 
 
 def backup(args: argparse.Namespace) -> None:
@@ -130,7 +149,7 @@ def restore(args: argparse.Namespace) -> None:
         members = [m for m in tar.getmembers() if m.name != "METADATA.json"]
         print(f"Archive contains {len(members)} path entries")
         for member in members:
-            dest = path_from_rel(member.name, target_home, target_project)
+            dest = path_from_rel(member.name, target_home, target_project, args.allow_absolute)
             if dest is None:
                 print(f"skip unknown archive path: {member.name}")
                 continue
@@ -143,7 +162,7 @@ def restore(args: argparse.Namespace) -> None:
         pre_dir.mkdir(parents=True, exist_ok=True)
         # Backup current destinations first.
         for member in members:
-            dest = path_from_rel(member.name, target_home, target_project)
+            dest = path_from_rel(member.name, target_home, target_project, args.allow_absolute)
             if dest and dest.exists():
                 backup_dest = pre_dir / member.name
                 backup_dest.parent.mkdir(parents=True, exist_ok=True)
@@ -153,7 +172,7 @@ def restore(args: argparse.Namespace) -> None:
                     shutil.copy2(dest, backup_dest)
 
         for member in members:
-            dest = path_from_rel(member.name, target_home, target_project)
+            dest = path_from_rel(member.name, target_home, target_project, args.allow_absolute)
             if dest is None:
                 continue
             dest.parent.mkdir(parents=True, exist_ok=True)
@@ -188,11 +207,16 @@ def main() -> None:
     r.add_argument("--target-home", default=None)
     r.add_argument("--pre-restore-backup-dir", default=None)
     r.add_argument("--dry-run", action="store_true")
+    r.add_argument(
+        "--allow-absolute",
+        action="store_true",
+        help="Permit restoring ABS/ archive entries to absolute paths (off by default for safety)",
+    )
     r.set_defaults(func=restore)
 
-    l = sub.add_parser("list")
-    l.add_argument("archive")
-    l.set_defaults(func=list_archive)
+    lst = sub.add_parser("list")
+    lst.add_argument("archive")
+    lst.set_defaults(func=list_archive)
 
     args = parser.parse_args()
     args.func(args)
