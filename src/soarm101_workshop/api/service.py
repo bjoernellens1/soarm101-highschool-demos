@@ -99,7 +99,9 @@ class ProcessManager:
             if not rp:
                 return False
             if rp.process.poll() is None:
-                self._kill_group(rp.pgid)
+                # _kill_group blocks up to ~3s on the SIGTERM grace wait; run it off
+                # the event loop so health checks / status stay responsive.
+                await asyncio.to_thread(self._kill_group, rp.pgid)
             self._procs.pop(key, None)
             self._persist()
         return True

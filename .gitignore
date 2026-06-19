@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 configs/arms.env
+.env
 *.mp4
 *.avi
 outputs/
