@@ -11,6 +11,7 @@ from ...commands import (
     build_calibrate_leader,
     build_record,
     build_replay,
+    build_reset,
     build_safe_home,
     build_teleop,
     shell_join,
@@ -90,6 +91,12 @@ async def start_replay(rig: str, params: ReplayParams):
 @router.post("/rigs/{rig}/safe-home", response_model=ActionResult)
 async def start_safe_home(rig: str):
     return await _start(rig, "safe-home", build_safe_home(_rig(rig)))
+
+
+@router.post("/rigs/{rig}/reset", response_model=ActionResult)
+async def start_reset(rig: str):
+    """Reset/recover the rig's motor buses: ping IDs and release torque locks."""
+    return await _start(rig, "reset", build_reset(_rig(rig)))
 
 
 @router.post("/orchestra/play", response_model=list[ActionResult])

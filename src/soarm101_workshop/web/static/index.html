@@ -29,7 +29,9 @@
       <section class="card">
         <h2>Actions</h2>
         <p class="hint">Clear the workspace before any motion.</p>
-        <button class="full" onclick="start('calibrate-follower')">Calibrate follower</button>
+        <button class="full" onclick="start('reset')">Reset motors (recover bus)</button>
+        <button class="full mt" onclick="start('safe-home')">Safe home</button>
+        <button class="full mt" onclick="start('calibrate-follower')">Calibrate follower</button>
         <button class="full mt" onclick="start('calibrate-leader')">Calibrate leader</button>
         <label class="inline"><input id="teleop_display" type="checkbox"> Live Rerun view</label>
         <button class="full" onclick="startTeleop()">Start teleop</button>

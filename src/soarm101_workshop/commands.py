@@ -121,6 +121,10 @@ def build_replay(rig: Rig, repo_id: str, episode: int = 0) -> list[str]:
     ]
 
 
+def build_reset(rig: Rig) -> list[str]:
+    return ["python", "-m", "soarm101_workshop.reset_motors", "--rig", rig.name]
+
+
 def build_safe_home(rig: Rig) -> list[str]:
     return [
         "python",

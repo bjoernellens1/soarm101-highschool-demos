@@ -19,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("calibrate-follower")
     sub.add_parser("calibrate-leader")
     sub.add_parser("safe-home")
+    sub.add_parser("reset", help="Ping/recover the rig's motor buses (clears torque locks)")
 
     orch = sub.add_parser("orchestra")
     orch.add_argument("repo_id")
@@ -62,7 +63,7 @@ def main() -> None:
             print(json.dumps(c.get("/api/processes"), indent=2))
         elif args.cmd == "teleop":
             print(c.post(f"/api/rigs/{args.rig}/teleop"))
-        elif args.cmd in ("calibrate-follower", "calibrate-leader", "safe-home"):
+        elif args.cmd in ("calibrate-follower", "calibrate-leader", "safe-home", "reset"):
             print(c.post(f"/api/rigs/{args.rig}/{args.cmd}"))
         elif args.cmd == "orchestra":
             print(
