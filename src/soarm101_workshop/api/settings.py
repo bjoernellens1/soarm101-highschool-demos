@@ -7,7 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="SOARM_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="SOARM_", env_file=".env", extra="ignore", populate_by_name=True
+    )
 
     # Honour the documented SOARM_API_TOKEN name rather than SOARM_TOKEN.
     token: str = Field(default="", validation_alias="SOARM_API_TOKEN")
