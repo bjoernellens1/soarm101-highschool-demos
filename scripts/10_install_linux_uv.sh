@@ -20,6 +20,13 @@ source .venv/bin/activate
 uv pip install -U pip wheel setuptools
 uv pip install -e '.[robot]'
 
+# LeRobot pulls in opencv-python-headless, which shadows opencv-python and leaves
+# cv2 without a GUI backend (cv2.imshow fails -> the color demo can't open a window).
+# Force a GUI-capable build for scripts/06_color_sort_cv.py. The demo also has a
+# --headless fallback, so this is best-effort.
+uv pip uninstall opencv-python-headless 2>/dev/null || true
+uv pip install --force-reinstall --no-deps opencv-python || true
+
 cat <<'MSG'
 
 Install complete.

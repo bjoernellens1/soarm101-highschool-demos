@@ -45,10 +45,44 @@ def largest_blob(mask: np.ndarray) -> tuple[int, int, int, int] | None:
     return x, y, w, h
 
 
+def gui_available() -> bool:
+    """True if this OpenCV build can show windows.
+
+    `opencv-python-headless` (often pulled in transitively, e.g. by lerobot) has
+    no highgui backend, so `cv2.imshow` raises. Detect that up front and fall
+    back to a text/file mode instead of crashing.
+    """
+    try:
+        cv2.namedWindow("__probe__")
+        cv2.destroyWindow("__probe__")
+        return True
+    except cv2.error:
+        return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--camera", default="0", help="OpenCV camera index or path")
+    parser.add_argument(
+        "--headless",
+        action="store_true",
+        help="Force text/file mode (also auto-enabled when OpenCV has no GUI backend)",
+    )
+    parser.add_argument(
+        "--snapshot",
+        default="logs/color_demo_last.jpg",
+        help="Where to write the annotated frame in headless mode",
+    )
     args = parser.parse_args()
+    headless = args.headless or not gui_available()
+    if headless:
+        from pathlib import Path
+
+        Path(args.snapshot).parent.mkdir(parents=True, exist_ok=True)
+        print(
+            "Running headless (no OpenCV GUI). Printing detections and writing "
+            f"annotated frames to {args.snapshot}. Ctrl+C to quit."
+        )
 
     camera: int | str
     try:
@@ -66,38 +100,51 @@ def main() -> None:
     if not cap.isOpened():
         raise RuntimeError(f"Could not open camera {args.camera!r}")
 
-    print("Press q to quit. Show a red/blue/green object to the camera.")
-    while True:
-        ok, frame = cap.read()
-        if not ok:
-            break
-        frame = cv2.flip(frame, 1)
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    if not headless:
+        print("Press q to quit. Show a red/blue/green object to the camera.")
+    last_label = None
+    try:
+        while True:
+            ok, frame = cap.read()
+            if not ok:
+                break
+            frame = cv2.flip(frame, 1)
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        best = None
-        for rule in rules:
-            blob = largest_blob(mask_for_rule(hsv, rule))
-            if blob is None:
-                continue
-            x, y, w, h = blob
-            area = w * h
-            if best is None or area > best[0]:
-                best = (area, rule, blob)
+            best = None
+            for rule in rules:
+                blob = largest_blob(mask_for_rule(hsv, rule))
+                if blob is None:
+                    continue
+                x, y, w, h = blob
+                area = w * h
+                if best is None or area > best[0]:
+                    best = (area, rule, blob)
 
-        if best:
-            _, rule, (x, y, w, h) = best
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
-            label = f"{rule.name.upper()} -> {rule.target}"
-        else:
-            label = "No object detected"
+            if best:
+                _, rule, (x, y, w, h) = best
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
+                label = f"{rule.name.upper()} -> {rule.target}"
+            else:
+                label = "No object detected"
 
-        cv2.putText(frame, label, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
-        cv2.imshow("SO-ARM101 color decision demo", frame)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+            cv2.putText(frame, label, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
 
-    cap.release()
-    cv2.destroyAllWindows()
+            if headless:
+                if label != last_label:
+                    print(label)
+                    last_label = label
+                cv2.imwrite(args.snapshot, frame)
+            else:
+                cv2.imshow("SO-ARM101 color decision demo", frame)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+    except KeyboardInterrupt:
+        pass
+    finally:
+        cap.release()
+        if not headless:
+            cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
